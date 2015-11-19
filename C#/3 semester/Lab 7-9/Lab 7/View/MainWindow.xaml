@@ -1,0 +1,118 @@
+﻿<Window x:Class="Lab_7.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:local="clr-namespace:Lab_7.View"
+        xmlns:viewModel="clr-namespace:Lab_7.ViewModel"
+        xmlns:ui="clr-namespace:Lab_7.UI"
+        mc:Ignorable="d"
+        Title="Music PLayer" Height="350" Width="525"
+        Icon="{Binding Path=AppIcon, Source={StaticResource Strings}}">
+
+    <Window.DataContext>
+        <!-- Declaratively create an instance of our Album View Model-->
+        <viewModel:PlayerViewModel />
+    </Window.DataContext>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control" Key="N" Command="{Binding MenuNextCommand}" CommandParameter="{Binding OpenedPlaylist}" />
+        <KeyBinding Modifiers="Control" Key="D1" Command="{Binding MenuPlayCommand}" CommandParameter="{Binding}" />
+        <KeyBinding Modifiers="Control" Key="D2" Command="{Binding MenuPauseCommand}" CommandParameter="{Binding}" />
+        <KeyBinding Modifiers="Control" Key="D3" Command="{Binding MenuStopCommand}" CommandParameter="{Binding}" />
+    </Window.InputBindings>
+    <DockPanel>
+        <Grid Background="#f0f0f0" DockPanel.Dock="Left" Width="150">
+            <Menu Width="150" HorizontalAlignment="Left" VerticalAlignment="Top" DockPanel.Dock="Top" Background="White">
+                <MenuItem Header="{Binding Path=MenuControlText, Source={StaticResource Strings}}">
+                    <MenuItem Style="{StaticResource InnerMenuItemStyle}" Header="{Binding Path=MenuNextText, Source={StaticResource Strings}}" Command="{Binding MenuNextCommand}" CommandParameter="{Binding OpenedPlaylist}" InputGestureText="Ctrl+N">
+                        <MenuItem.Icon>
+                            <Image Source="{StaticResource IconMenuNext}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Style="{StaticResource InnerMenuItemStyle}"  Header="{Binding Path=MenuPlayText, Source={StaticResource Strings}}" Command="{Binding MenuPlayCommand}" CommandParameter="{Binding}" InputGestureText="Ctrl+1">
+                        <MenuItem.Icon>
+                            <Image Source="{StaticResource IconMenuPlay}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Style="{StaticResource InnerMenuItemStyle}"  Header="{Binding Path=MenuPauseText, Source={StaticResource Strings}}" Command="{Binding MenuPauseCommand}" CommandParameter="{Binding}" InputGestureText="Ctrl+2">
+                        <MenuItem.Icon>
+                            <Image Source="{StaticResource IconMenuPause}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Style="{StaticResource InnerMenuItemStyle}"  Header="{Binding Path=MenuStopText, Source={StaticResource Strings}}" Command="{Binding MenuStopCommand}" CommandParameter="{Binding}" InputGestureText="Ctrl+3">
+                        <MenuItem.Icon>
+                            <Image Source="{StaticResource IconMenuStop}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+            <ListView Name="Playlists" ItemsSource="{Binding}" Background="#FFF0F0F0" Margin="5,20,5,5" BorderThickness="0" FontSize="18.667" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel>
+                            <Image Style="{StaticResource PlayButtonAnimation}" DockPanel.Dock="Right"  MaxWidth="15" Source="{Binding ItemIconPath}">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseUp">
+                                        <i:InvokeCommandAction Command="{Binding DataContext.PlaylistViewImageClickCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}" CommandParameter="{Binding}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Image>
+                            <TextBlock Text="{Binding Name}">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{Binding ForegroundColor}"/>
+                                </TextBlock.Foreground>
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseUp">
+                                        <i:InvokeCommandAction Command="{Binding DataContext.PlaylistViewTextClickCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}" CommandParameter="{Binding}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBlock>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Focusable" Value="false"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Grid>
+        <Grid Name="PlaylistPage" Background="White" Visibility="Visible" >
+            <Grid.DataContext>
+                <viewModel:PlaylistViewModel />
+            </Grid.DataContext>
+            <DataGrid ItemsSource="{Binding}" CanUserResizeColumns="True" CanUserSortColumns="False" IsReadOnly="true" Name="PlaylistGrid" Background="White" AutoGenerateColumns="False" BorderThickness="0" Margin="20,55,20,20" CanUserAddRows="False" HeadersVisibility="Column">
+                <DataGrid.InputBindings>
+                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding PlaylistDoubleClickCommand}" CommandParameter="{Binding SelectedIndex, ElementName=PlaylistGrid}" />
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="" Binding="{Binding IsPlaying}" CanUserResize="False" Width="20"/>
+                    <DataGridTextColumn Header="{Binding Path=GridArtistText, Source={StaticResource Strings}}" Binding="{Binding Artist}" Width="85"/>
+                    <DataGridTextColumn Header="{Binding Path=GridSongText, Source={StaticResource Strings}}" Binding="{Binding SongName}" Width="140"/>
+                    <DataGridTextColumn  Header="{Binding Path=GridDurationText, Source={StaticResource Strings}}" Binding="{Binding Duration}" Width="60"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Button Content="{Binding Path=ButtonAddText, Source={StaticResource Strings}}" HorizontalAlignment="Left" Margin="20,14,20,0" VerticalAlignment="Top" Width="88" FontSize="18.667" BorderThickness="0" Background="WhiteSmoke" Command="{Binding AddNewSongCommand}" CommandParameter="{Binding}"/>
+            <ComboBox Name="LangChanger" HorizontalAlignment="Right" VerticalAlignment="Top" SelectedIndex="0" Margin="0,0,0,0" Width="55">
+                <Label Content="ENG"/>
+                <Label Content="РУС"/>
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding LocalizationComboBoxChangedCommand}" CommandParameter="{Binding Path=SelectedIndex, ElementName=LangChanger}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal" Margin="0,14,85,0">
+                <Label Content="{Binding Path=LabelDurationText, Source={StaticResource Strings}}"/>
+                <Label Content="{Binding TotalAlbumDuration}"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>
